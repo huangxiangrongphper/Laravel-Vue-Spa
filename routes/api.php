@@ -12,3 +12,5 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 //api/posts
 Route::get('/posts','PostsController@index');
 Route::get('/posts/{post}','PostsController@show');
+
+Route::post('/register','Auth\RegisterController@register');

@@ -14,6 +14,16 @@ let routes = [
         name : 'posts',
         component : require('./components/posts/Post')
     },
+    {
+        path : '/register',
+        name : 'register',
+        component : require('./components/register/Register')
+    },
+    {
+        path : '/confirm',
+        name : 'confirm',
+        component : require('./components/confirm/Email')
+    },
 ]
 
 export default new VueRouter({
