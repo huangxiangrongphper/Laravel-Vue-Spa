@@ -14694,6 +14694,10 @@ __WEBPACK_IMPORTED_MODULE_0_vue___default.a.use(__WEBPACK_IMPORTED_MODULE_1_vuex
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_js_cookie__ = __webpack_require__(97);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_js_cookie___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_js_cookie__);
+
+
 /* harmony default export */ __webpack_exports__["a"] = ({
     setToken: function setToken(token) {
         window.localStorage.setItem('jwt_token', token);
@@ -14703,6 +14707,9 @@ __WEBPACK_IMPORTED_MODULE_0_vue___default.a.use(__WEBPACK_IMPORTED_MODULE_1_vuex
     },
     removeToken: function removeToken() {
         window.localStorage.removeItem('jwt_token');
+    },
+    setAuthId: function setAuthId(authId) {
+        __WEBPACK_IMPORTED_MODULE_0_js_cookie___default.a.set('auth_id', authId);
     }
 });
 
@@ -14753,10 +14760,10 @@ axios.interceptors.request.use(function (config) {
 });
 
 // Localize takes the locale object as the second argument (optional) and merges it.
-__WEBPACK_IMPORTED_MODULE_6_vee_validate__["a" /* Validator */].localize('zh_CN', __WEBPACK_IMPORTED_MODULE_5__locale_zh_CN__["a" /* default */]);
+__WEBPACK_IMPORTED_MODULE_6_vee_validate__["b" /* Validator */].localize('zh_CN', __WEBPACK_IMPORTED_MODULE_5__locale_zh_CN__["a" /* default */]);
 
 // Install the Plugin.
-Vue.use(__WEBPACK_IMPORTED_MODULE_6_vee_validate__["b" /* default */]);
+Vue.use(__WEBPACK_IMPORTED_MODULE_6_vee_validate__["c" /* default */]);
 
 Vue.use(__WEBPACK_IMPORTED_MODULE_0_vue_router__["a" /* default */]);
 
@@ -46899,6 +46906,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                     type: __WEBPACK_IMPORTED_MODULE_0__mutation_type__["a" /* SET_AUTH_USER */],
                     user: response.data
                 });
+            }).catch(function (error) {
+                dispatch('refreshToken');
             });
         },
         unsetAuthUser: function unsetAuthUser(_ref2) {
@@ -46906,6 +46915,16 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
             commit({
                 type: __WEBPACK_IMPORTED_MODULE_0__mutation_type__["b" /* UNSET_AUTH_USER */]
+            });
+        },
+        refreshToken: function refreshToken(_ref3) {
+            var commit = _ref3.commit,
+                dispatch = _ref3.dispatch;
+
+            return axios.post('/api/token/refresh').then(function (response) {
+                dispatch('loginSuccess', response.data);
+            }).catch(function (error) {
+                dispatch('logoutRequest');
             });
         }
     }
@@ -48061,6 +48080,7 @@ module.exports = Component.exports
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__helpers_jwt__ = __webpack_require__(13);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vee_validate__ = __webpack_require__(83);
 //
 //
 //
@@ -48094,6 +48114,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+//
+
 
 
 
@@ -48101,10 +48123,16 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     data: function data() {
         return {
             email: '',
-            password: ''
+            password: '',
+            bag: new __WEBPACK_IMPORTED_MODULE_1_vee_validate__["a" /* ErrorBag */]()
         };
     },
 
+    computed: {
+        mismatchError: function mismatchError() {
+            return this.bag.has('password:auth') && !this.errors.has('password');
+        }
+    },
     methods: {
         login: function login() {
             var _this = this;
@@ -48117,6 +48145,10 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
                     };
                     _this.$store.dispatch('loginRequest', formData).then(function (response) {
                         _this.$router.push({ name: 'profile' });
+                    }).catch(function (error) {
+                        if (error.response.status === 421) {
+                            _this.bag.add('password', '邮箱密码不相符', 'auth');
+                        }
                     });
                 }
             });
@@ -48215,7 +48247,10 @@ var render = function() {
         "div",
         {
           staticClass: "form-group",
-          class: { "has-error": _vm.errors.has("password") }
+          class: {
+            "has-error":
+              _vm.errors.has("password") || _vm.bag.has("password:auth")
+          }
         },
         [
           _c(
@@ -48277,7 +48312,13 @@ var render = function() {
                 staticClass: "help-block"
               },
               [_vm._v(_vm._s(_vm.errors.first("password")))]
-            )
+            ),
+            _vm._v(" "),
+            _vm.mismatchError
+              ? _c("span", { staticClass: "help-block" }, [
+                  _vm._v(_vm._s(_vm.bag.first("password:auth")))
+                ])
+              : _vm._e()
           ])
         ]
       ),
@@ -48629,6 +48670,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__commen_TopMenu__ = __webpack_require__(77);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__commen_TopMenu___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__commen_TopMenu__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__helpers_jwt__ = __webpack_require__(13);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_js_cookie__ = __webpack_require__(97);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_js_cookie___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_js_cookie__);
 //
 //
 //
@@ -48638,6 +48681,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+
 
 
 
@@ -48645,6 +48689,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     created: function created() {
         if (__WEBPACK_IMPORTED_MODULE_1__helpers_jwt__["a" /* default */].getToken()) {
             this.$store.dispatch('setAuthUser');
+        } else if (__WEBPACK_IMPORTED_MODULE_2_js_cookie___default.a.get('auth_id')) {
+            this.$store.dispatch('refreshToken');
         }
     },
 
@@ -49086,8 +49132,8 @@ var isDefinedGlobally = function isDefinedGlobally() {
 /* unused harmony export directive */
 /* unused harmony export mixin */
 /* unused harmony export mapFields */
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Validator; });
-/* unused harmony export ErrorBag */
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return Validator; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return ErrorBag; });
 /* unused harmony export Rules */
 /* unused harmony export ErrorComponent */
 /* unused harmony export version */
@@ -56891,7 +56937,7 @@ var index_esm = {
   version: version
 };
 
-/* harmony default export */ __webpack_exports__["b"] = (index_esm);
+/* harmony default export */ __webpack_exports__["c"] = (index_esm);
 
 
 
@@ -56935,14 +56981,18 @@ var UNSET_AUTH_USER = 'UNSET_AUTH_USER';
             var dispatch = _ref.dispatch;
 
             return axios.post('/api/login', formData).then(function (response) {
-                __WEBPACK_IMPORTED_MODULE_0__helpers_jwt__["a" /* default */].setToken(response.data.token);
-                dispatch('setAuthUser');
-            }).catch(function (error) {
-                console.log(error.response.data);
+                dispatch('loginSuccess', response.data);
             });
         },
-        logoutRequest: function logoutRequest(_ref2) {
+        loginSuccess: function loginSuccess(_ref2, tokenResponse) {
             var dispatch = _ref2.dispatch;
+
+            __WEBPACK_IMPORTED_MODULE_0__helpers_jwt__["a" /* default */].setToken(tokenResponse.token);
+            __WEBPACK_IMPORTED_MODULE_0__helpers_jwt__["a" /* default */].setAuthId(tokenResponse.auth_id);
+            dispatch('setAuthUser');
+        },
+        logoutRequest: function logoutRequest(_ref3) {
+            var dispatch = _ref3.dispatch;
 
             return axios.post('/api/logout').then(function (response) {
                 __WEBPACK_IMPORTED_MODULE_0__helpers_jwt__["a" /* default */].removeToken();
@@ -56951,6 +57001,181 @@ var UNSET_AUTH_USER = 'UNSET_AUTH_USER';
         }
     }
 });
+
+/***/ }),
+/* 97 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
+ * JavaScript Cookie v2.2.0
+ * https://github.com/js-cookie/js-cookie
+ *
+ * Copyright 2006, 2015 Klaus Hartl & Fagner Brack
+ * Released under the MIT license
+ */
+;(function (factory) {
+	var registeredInModuleLoader = false;
+	if (true) {
+		!(__WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
+				(__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) :
+				__WEBPACK_AMD_DEFINE_FACTORY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+		registeredInModuleLoader = true;
+	}
+	if (true) {
+		module.exports = factory();
+		registeredInModuleLoader = true;
+	}
+	if (!registeredInModuleLoader) {
+		var OldCookies = window.Cookies;
+		var api = window.Cookies = factory();
+		api.noConflict = function () {
+			window.Cookies = OldCookies;
+			return api;
+		};
+	}
+}(function () {
+	function extend () {
+		var i = 0;
+		var result = {};
+		for (; i < arguments.length; i++) {
+			var attributes = arguments[ i ];
+			for (var key in attributes) {
+				result[key] = attributes[key];
+			}
+		}
+		return result;
+	}
+
+	function init (converter) {
+		function api (key, value, attributes) {
+			var result;
+			if (typeof document === 'undefined') {
+				return;
+			}
+
+			// Write
+
+			if (arguments.length > 1) {
+				attributes = extend({
+					path: '/'
+				}, api.defaults, attributes);
+
+				if (typeof attributes.expires === 'number') {
+					var expires = new Date();
+					expires.setMilliseconds(expires.getMilliseconds() + attributes.expires * 864e+5);
+					attributes.expires = expires;
+				}
+
+				// We're using "expires" because "max-age" is not supported by IE
+				attributes.expires = attributes.expires ? attributes.expires.toUTCString() : '';
+
+				try {
+					result = JSON.stringify(value);
+					if (/^[\{\[]/.test(result)) {
+						value = result;
+					}
+				} catch (e) {}
+
+				if (!converter.write) {
+					value = encodeURIComponent(String(value))
+						.replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g, decodeURIComponent);
+				} else {
+					value = converter.write(value, key);
+				}
+
+				key = encodeURIComponent(String(key));
+				key = key.replace(/%(23|24|26|2B|5E|60|7C)/g, decodeURIComponent);
+				key = key.replace(/[\(\)]/g, escape);
+
+				var stringifiedAttributes = '';
+
+				for (var attributeName in attributes) {
+					if (!attributes[attributeName]) {
+						continue;
+					}
+					stringifiedAttributes += '; ' + attributeName;
+					if (attributes[attributeName] === true) {
+						continue;
+					}
+					stringifiedAttributes += '=' + attributes[attributeName];
+				}
+				return (document.cookie = key + '=' + value + stringifiedAttributes);
+			}
+
+			// Read
+
+			if (!key) {
+				result = {};
+			}
+
+			// To prevent the for loop in the first place assign an empty array
+			// in case there are no cookies at all. Also prevents odd result when
+			// calling "get()"
+			var cookies = document.cookie ? document.cookie.split('; ') : [];
+			var rdecode = /(%[0-9A-Z]{2})+/g;
+			var i = 0;
+
+			for (; i < cookies.length; i++) {
+				var parts = cookies[i].split('=');
+				var cookie = parts.slice(1).join('=');
+
+				if (!this.json && cookie.charAt(0) === '"') {
+					cookie = cookie.slice(1, -1);
+				}
+
+				try {
+					var name = parts[0].replace(rdecode, decodeURIComponent);
+					cookie = converter.read ?
+						converter.read(cookie, name) : converter(cookie, name) ||
+						cookie.replace(rdecode, decodeURIComponent);
+
+					if (this.json) {
+						try {
+							cookie = JSON.parse(cookie);
+						} catch (e) {}
+					}
+
+					if (key === name) {
+						result = cookie;
+						break;
+					}
+
+					if (!key) {
+						result[name] = cookie;
+					}
+				} catch (e) {}
+			}
+
+			return result;
+		}
+
+		api.set = api;
+		api.get = function (key) {
+			return api.call(api, key);
+		};
+		api.getJSON = function () {
+			return api.apply({
+				json: true
+			}, [].slice.call(arguments));
+		};
+		api.defaults = {};
+
+		api.remove = function (key, attributes) {
+			api(key, '', extend(attributes, {
+				expires: -1
+			}));
+		};
+
+		api.withConverter = init;
+
+		return api;
+	}
+
+	return init(function () {});
+}));
+
 
 /***/ })
 /******/ ]);
