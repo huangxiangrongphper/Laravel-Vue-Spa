@@ -14707,6 +14707,7 @@ __WEBPACK_IMPORTED_MODULE_0_vue___default.a.use(__WEBPACK_IMPORTED_MODULE_1_vuex
     },
     removeToken: function removeToken() {
         window.localStorage.removeItem('jwt_token');
+        __WEBPACK_IMPORTED_MODULE_0_js_cookie___default.a.remove('auth_id');
     },
     setAuthId: function setAuthId(authId) {
         __WEBPACK_IMPORTED_MODULE_0_js_cookie___default.a.set('auth_id', authId);

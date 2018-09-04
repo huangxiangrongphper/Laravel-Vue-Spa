@@ -45,6 +45,13 @@ class TokenProxy {
     public function logout()
     {
         $user = auth()->guard('api')->user();
+        if(is_null($user)) {
+            app('cookie')->queue(app('cookie')->forget('refreshToken'));
+
+            return response()->json([
+                'message' => 'Logout!'
+            ],204);
+        }
 
         $accessToken = $user->token();
 
@@ -54,13 +61,13 @@ class TokenProxy {
                 'revoked' => true,
             ]);
 
-        $refreshToken = app('cookie')->forget('refreshToken');
+        app('cookie')->queue(app('cookie')->forget('refreshToken'));
 
         $accessToken->revoke();
 
         return response()->json([
             'message' => 'Logout!'
-        ],204)->cookie($refreshToken);
+        ],204);
     }
 
     public function proxy($grantType, array $data = [])
