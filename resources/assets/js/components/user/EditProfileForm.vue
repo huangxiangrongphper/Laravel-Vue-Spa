@@ -1,9 +1,9 @@
 <template>
-    <form>
+    <form @submit.prevent="updateProfile">
         <div class="form-group" :class="{'has-error' : errors.has('name')}">
             <label for="name" class="control-label">用户名</label>
                 <input v-model="name"
-                       v-validate="'required|name'" data-vv-as="邮箱"
+                       v-validate="'required'" data-vv-as="邮箱"
                        id="name" type="text" class="form-control" name="name" required>
 
                 <span class="help-block" v-show="errors.has('name')">{{errors.first('name')}}</span>
@@ -29,12 +29,47 @@
 <script>
     import jwtToken from './../../helpers/jwt'
     import { ErrorBag } from 'vee-validate';
+    import * as types from './../../store/mutation-type'
 
     export default {
-        data() {
-            return {
-                name:'',
-                email:''
+        created(){
+          this.$store.dispatch('setAuthUser');
+        },
+        computed:{
+            name: {
+                get() {
+                    return this.$store.state.AuthUser.name;
+                },
+                set(value) {
+                    this.$store.commit({
+                        type: types.UPDATE_PROFILE_NAME,
+                        value: value
+                    })
+                }
+            },
+            email: {
+                get() {
+                    return this.$store.state.AuthUser.email;
+                },
+                set(value) {
+                    this.$store.commit({
+                        type: types.UPDATE_PROFILE_EMAIL,
+                        value: value
+                    })
+                }
+            },
+        },
+        methods:{
+            updateProfile() {
+                const formData = {
+                    name: this.name,
+                    email: this.email
+                }
+                this.$store.dispatch('updateProfileRequest',formData).then(response => {
+                    this.$router.push({name:'profile'})
+                }).catch(error => {
+
+                })
             }
         }
     }

@@ -14673,6 +14673,8 @@ if (inBrowser && window.Vue) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vuex__ = __webpack_require__(43);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__modules_auth_user__ = __webpack_require__(44);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__modules_login__ = __webpack_require__(96);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__modules_edit_profile__ = __webpack_require__(113);
+
 
 
 
@@ -14685,7 +14687,8 @@ __WEBPACK_IMPORTED_MODULE_0_vue___default.a.use(__WEBPACK_IMPORTED_MODULE_1_vuex
 /* harmony default export */ __webpack_exports__["a"] = (new __WEBPACK_IMPORTED_MODULE_1_vuex__["a" /* default */].Store({
     modules: {
         AuthUser: __WEBPACK_IMPORTED_MODULE_2__modules_auth_user__["a" /* default */],
-        Login: __WEBPACK_IMPORTED_MODULE_3__modules_login__["a" /* default */]
+        Login: __WEBPACK_IMPORTED_MODULE_3__modules_login__["a" /* default */],
+        EditProfile: __WEBPACK_IMPORTED_MODULE_4__modules_edit_profile__["a" /* default */]
     }
 }));
 
@@ -46903,7 +46906,11 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         name: null,
         email: null
     },
-    mutations: (_mutations = {}, _defineProperty(_mutations, __WEBPACK_IMPORTED_MODULE_0__mutation_type__["a" /* SET_AUTH_USER */], function (state, payload) {
+    mutations: (_mutations = {}, _defineProperty(_mutations, __WEBPACK_IMPORTED_MODULE_0__mutation_type__["d" /* UPDATE_PROFILE_NAME */], function (state, payload) {
+        state.name = payload.value;
+    }), _defineProperty(_mutations, __WEBPACK_IMPORTED_MODULE_0__mutation_type__["c" /* UPDATE_PROFILE_EMAIL */], function (state, payload) {
+        state.email = payload.value;
+    }), _defineProperty(_mutations, __WEBPACK_IMPORTED_MODULE_0__mutation_type__["a" /* SET_AUTH_USER */], function (state, payload) {
         state.authenticated = true;
         state.name = payload.user.name;
         state.email = payload.user.email;
@@ -56994,8 +57001,12 @@ var index_esm = {
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return SET_AUTH_USER; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return UNSET_AUTH_USER; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return UPDATE_PROFILE_NAME; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return UPDATE_PROFILE_EMAIL; });
 var SET_AUTH_USER = 'SET_AUTH_USER';
 var UNSET_AUTH_USER = 'UNSET_AUTH_USER';
+var UPDATE_PROFILE_NAME = 'UPDATE_PROFILE_NAME';
+var UPDATE_PROFILE_EMAIL = 'UPDATE_PROFILE_EMAIL';
 
 /***/ }),
 /* 96 */
@@ -57498,6 +57509,7 @@ module.exports = Component.exports
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__helpers_jwt__ = __webpack_require__(13);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vee_validate__ = __webpack_require__(83);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__store_mutation_type__ = __webpack_require__(95);
 //
 //
 //
@@ -57526,16 +57538,52 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 //
 //
 //
+
 
 
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-    data: function data() {
-        return {
-            name: '',
-            email: ''
-        };
+    created: function created() {
+        this.$store.dispatch('setAuthUser');
+    },
+
+    computed: {
+        name: {
+            get: function get() {
+                return this.$store.state.AuthUser.name;
+            },
+            set: function set(value) {
+                this.$store.commit({
+                    type: __WEBPACK_IMPORTED_MODULE_2__store_mutation_type__["d" /* UPDATE_PROFILE_NAME */],
+                    value: value
+                });
+            }
+        },
+        email: {
+            get: function get() {
+                return this.$store.state.AuthUser.email;
+            },
+            set: function set(value) {
+                this.$store.commit({
+                    type: __WEBPACK_IMPORTED_MODULE_2__store_mutation_type__["c" /* UPDATE_PROFILE_EMAIL */],
+                    value: value
+                });
+            }
+        }
+    },
+    methods: {
+        updateProfile: function updateProfile() {
+            var _this = this;
+
+            var formData = {
+                name: this.name,
+                email: this.email
+            };
+            this.$store.dispatch('updateProfileRequest', formData).then(function (response) {
+                _this.$router.push({ name: 'profile' });
+            }).catch(function (error) {});
+        }
     }
 });
 
@@ -57547,135 +57595,150 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c("form", [
-    _c(
-      "div",
-      {
-        staticClass: "form-group",
-        class: { "has-error": _vm.errors.has("name") }
-      },
-      [
-        _c("label", { staticClass: "control-label", attrs: { for: "name" } }, [
-          _vm._v("用户名")
-        ]),
-        _vm._v(" "),
-        _c("input", {
-          directives: [
-            {
-              name: "model",
-              rawName: "v-model",
-              value: _vm.name,
-              expression: "name"
-            },
-            {
-              name: "validate",
-              rawName: "v-validate",
-              value: "required|name",
-              expression: "'required|name'"
-            }
-          ],
-          staticClass: "form-control",
-          attrs: {
-            "data-vv-as": "邮箱",
-            id: "name",
-            type: "text",
-            name: "name",
-            required: ""
-          },
-          domProps: { value: _vm.name },
-          on: {
-            input: function($event) {
-              if ($event.target.composing) {
-                return
-              }
-              _vm.name = $event.target.value
-            }
-          }
-        }),
-        _vm._v(" "),
-        _c(
-          "span",
-          {
+  return _c(
+    "form",
+    {
+      on: {
+        submit: function($event) {
+          $event.preventDefault()
+          return _vm.updateProfile($event)
+        }
+      }
+    },
+    [
+      _c(
+        "div",
+        {
+          staticClass: "form-group",
+          class: { "has-error": _vm.errors.has("name") }
+        },
+        [
+          _c(
+            "label",
+            { staticClass: "control-label", attrs: { for: "name" } },
+            [_vm._v("用户名")]
+          ),
+          _vm._v(" "),
+          _c("input", {
             directives: [
               {
-                name: "show",
-                rawName: "v-show",
-                value: _vm.errors.has("name"),
-                expression: "errors.has('name')"
+                name: "model",
+                rawName: "v-model",
+                value: _vm.name,
+                expression: "name"
+              },
+              {
+                name: "validate",
+                rawName: "v-validate",
+                value: "required",
+                expression: "'required'"
               }
             ],
-            staticClass: "help-block"
-          },
-          [_vm._v(_vm._s(_vm.errors.first("name")))]
-        )
-      ]
-    ),
-    _vm._v(" "),
-    _c(
-      "div",
-      {
-        staticClass: "form-group",
-        class: { "has-error": _vm.errors.has("email") }
-      },
-      [
-        _c("label", { staticClass: "control-label", attrs: { for: "email" } }, [
-          _vm._v("邮箱")
-        ]),
-        _vm._v(" "),
-        _c("input", {
-          directives: [
-            {
-              name: "model",
-              rawName: "v-model",
-              value: _vm.email,
-              expression: "email"
+            staticClass: "form-control",
+            attrs: {
+              "data-vv-as": "邮箱",
+              id: "name",
+              type: "text",
+              name: "name",
+              required: ""
             },
-            {
-              name: "validate",
-              rawName: "v-validate",
-              value: "required|email",
-              expression: "'required|email'"
-            }
-          ],
-          staticClass: "form-control",
-          attrs: {
-            "data-vv-as": "邮箱",
-            id: "email",
-            type: "email",
-            name: "email",
-            required: ""
-          },
-          domProps: { value: _vm.email },
-          on: {
-            input: function($event) {
-              if ($event.target.composing) {
-                return
+            domProps: { value: _vm.name },
+            on: {
+              input: function($event) {
+                if ($event.target.composing) {
+                  return
+                }
+                _vm.name = $event.target.value
               }
-              _vm.email = $event.target.value
             }
-          }
-        }),
-        _vm._v(" "),
-        _c(
-          "span",
-          {
+          }),
+          _vm._v(" "),
+          _c(
+            "span",
+            {
+              directives: [
+                {
+                  name: "show",
+                  rawName: "v-show",
+                  value: _vm.errors.has("name"),
+                  expression: "errors.has('name')"
+                }
+              ],
+              staticClass: "help-block"
+            },
+            [_vm._v(_vm._s(_vm.errors.first("name")))]
+          )
+        ]
+      ),
+      _vm._v(" "),
+      _c(
+        "div",
+        {
+          staticClass: "form-group",
+          class: { "has-error": _vm.errors.has("email") }
+        },
+        [
+          _c(
+            "label",
+            { staticClass: "control-label", attrs: { for: "email" } },
+            [_vm._v("邮箱")]
+          ),
+          _vm._v(" "),
+          _c("input", {
             directives: [
               {
-                name: "show",
-                rawName: "v-show",
-                value: _vm.errors.has("email"),
-                expression: "errors.has('email')"
+                name: "model",
+                rawName: "v-model",
+                value: _vm.email,
+                expression: "email"
+              },
+              {
+                name: "validate",
+                rawName: "v-validate",
+                value: "required|email",
+                expression: "'required|email'"
               }
             ],
-            staticClass: "help-block"
-          },
-          [_vm._v(_vm._s(_vm.errors.first("email")))]
-        )
-      ]
-    ),
-    _vm._v(" "),
-    _vm._m(0)
-  ])
+            staticClass: "form-control",
+            attrs: {
+              "data-vv-as": "邮箱",
+              id: "email",
+              type: "email",
+              name: "email",
+              required: ""
+            },
+            domProps: { value: _vm.email },
+            on: {
+              input: function($event) {
+                if ($event.target.composing) {
+                  return
+                }
+                _vm.email = $event.target.value
+              }
+            }
+          }),
+          _vm._v(" "),
+          _c(
+            "span",
+            {
+              directives: [
+                {
+                  name: "show",
+                  rawName: "v-show",
+                  value: _vm.errors.has("email"),
+                  expression: "errors.has('email')"
+                }
+              ],
+              staticClass: "help-block"
+            },
+            [_vm._v(_vm._s(_vm.errors.first("email")))]
+          )
+        ]
+      ),
+      _vm._v(" "),
+      _vm._m(0)
+    ]
+  )
 }
 var staticRenderFns = [
   function() {
@@ -58084,6 +58147,24 @@ if (false) {
     require("vue-hot-reload-api")      .rerender("data-v-82e2185c", module.exports)
   }
 }
+
+/***/ }),
+/* 113 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__helpers_jwt__ = __webpack_require__(13);
+
+
+/* harmony default export */ __webpack_exports__["a"] = ({
+    actions: {
+        updateProfileRequest: function updateProfileRequest(_ref, formData) {
+            var dispatch = _ref.dispatch;
+
+            return axios.post('/api/user/profile/update', formData).then(function (response) {}).catch(function (errors) {});
+        }
+    }
+});
 
 /***/ })
 /******/ ]);
