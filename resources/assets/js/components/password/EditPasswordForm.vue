@@ -1,5 +1,5 @@
 <template>
-    <form  @submit.prevent="register">
+    <form  @submit.prevent="updatePassword">
 
         <div class="form-group" :class="{'has-error' : errors.has('password')}">
             <label for="password"  class="control-label">密码</label>
@@ -35,6 +35,21 @@
             }
         },
         methods:{
+            updatePassword() {
+                this.$validator.validateAll().then(result => {
+                    if (result) {
+                        let formData = {
+                            password: this.password
+                        }
+                        this.$store.dispatch('updatePasswordRequest', formData).then(response => {
+                            //this.$router.push({name: 'profile'})
+                            console.log('Success!');
+                        }).catch(error => {
+
+                        })
+                    }
+                })
+            }
         }
     }
 </script>
